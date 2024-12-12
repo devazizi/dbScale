@@ -1,0 +1,40 @@
+volumes:
+  _mysql_db_master:
+    driver: local
+  _mysql_db_replica_1:
+    driver: local 
+
+services:
+    master:
+        image: bitnami/mysql:8.0
+        container_name: db-master
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_ROOT_PASSWORD}'
+            MYSQL_REPLICATION_MODE: master
+            MYSQL_REPLICATION_USER: '${DB_REPLICATION_USER}'
+            MYSQL_REPLICATION_PASSWORD: '${DB_REPLICATION_PASSWORD}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+        ports:
+            - "13306:3306"
+        volumes:
+          - _mysql_db_master:/bitnami/mysql/data
+
+    slave_1:
+        image: bitnami/mysql:8.0
+        container_name: db-slave-1
+        environment:
+            MYSQL_REPLICATION_MODE: slave
+            MYSQL_REPLICATION_USER: '${DB_REPLICATION_USER}'
+            MYSQL_REPLICATION_PASSWORD: '${DB_REPLICATION_PASSWORD}'
+            MYSQL_MASTER_HOST: '${DB_MASTER_HOST}'
+            MYSQL_MASTER_ROOT_PASSWORD: '${DB_ROOT_PASSWORD}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+        depends_on:
+            - master
+        ports:
+            - "13307:3306"
+        volumes:
+          - _mysql_db_replica_1:/bitnami/mysql/data
